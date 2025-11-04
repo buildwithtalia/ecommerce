@@ -1,0 +1,1280 @@
+{
+  "info": {
+    "_postman_id": "210dfe28-3b77-468c-8902-f3771cd98ec2",
+    "name": "ecommerce FS APIs",
+    "description": "Auto-generated from Flask app.py. Uses {{baseUrl}} and {{access_token}} for environment flexibility.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// --- Test Group: Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "    pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "",
+                  "// --- Test Group: Response Time ---",
+                  "pm.test(\"Response time is less than 1200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "",
+                  "// --- Test Group: Content-Type Header ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\");",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// --- Test Group: Body is not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "",
+                  "// --- Test Group: JSON Schema Validation ---",
+                  "let isJson = false;",
+                  "let jsonData;",
+                  "try {",
+                  "    const contentType = pm.response.headers.get(\"Content-Type\") || \"\";",
+                  "    if (contentType.includes(\"application/json\")) {",
+                  "        jsonData = pm.response.json();",
+                  "        isJson = true;",
+                  "    }",
+                  "} catch (e) {}",
+                  "",
+                  "if (isJson) {",
+                  "    pm.test(\"Response is an array\", function () {",
+                  "        pm.expect(Array.isArray(jsonData)).to.be.true;",
+                  "    });",
+                  "    pm.test(\"Each product has required fields and types\", function () {",
+                  "        jsonData.forEach(function(item) {",
+                  "            pm.expect(item).to.have.property(\"id\").that.is.a(\"number\");",
+                  "            pm.expect(item).to.have.property(\"name\").that.is.a(\"string\");",
+                  "            pm.expect(item).to.have.property(\"price\").that.is.a(\"number\");",
+                  "            pm.expect(item).to.have.property(\"stock\").that.is.a(\"number\");",
+                  "            pm.expect(item).to.have.property(\"category\").that.is.a(\"string\");",
+                  "            pm.expect(item).to.have.property(\"created_at\").that.is.a(\"string\");",
+                  "            pm.expect(item).to.have.property(\"description\").that.is.a(\"string\");",
+                  "        });",
+                  "    });",
+                  "    pm.test(\"created_at is ISO 8601 string\", function () {",
+                  "        jsonData.forEach(function(item) {",
+                  "            pm.expect(item.created_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+$/);",
+                  "        });",
+                  "    });",
+                  "    pm.test(\"Product IDs are unique\", function () {",
+                  "        const ids = jsonData.map(i => i.id);",
+                  "        pm.expect(new Set(ids).size).to.eql(ids.length);",
+                  "    });",
+                  "    // Save first product id for downstream use",
+                  "    if (jsonData.length > 0 && jsonData[0].id) {",
+                  "        pm.environment.set(\"product_id\", jsonData[0].id);",
+                  "    }",
+                  "    // --- AJV Schema Validation ---",
+                  "    pm.test(\"Response matches product array schema (AJV)\", function () {",
+                  "        const Ajv = require('ajv'), ajv = new Ajv({allErrors: true, strict: false});",
+                  "        const schema = {",
+                  "            type: \"array\",",
+                  "            items: {",
+                  "                type: \"object\",",
+                  "                required: [\"id\", \"name\", \"price\", \"stock\", \"category\", \"created_at\", \"description\"],",
+                  "                properties: {",
+                  "                    id: { type: \"number\" },",
+                  "                    name: { type: \"string\" },",
+                  "                    price: { type: \"number\" },",
+                  "                    stock: { type: \"number\" },",
+                  "                    category: { type: \"string\" },",
+                  "                    created_at: { type: \"string\" },",
+                  "                    description: { type: \"string\" }",
+                  "                }",
+                  "            }",
+                  "        };",
+                  "        const valid = ajv.validate(schema, jsonData);",
+                  "        pm.expect(valid, JSON.stringify(ajv.errors)).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Response is not JSON, skipping schema validation\", function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// --- Test Group: Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "    pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "",
+                  "// --- Test Group: Response Time ---",
+                  "pm.test(\"Response time is less than 1200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "",
+                  "// --- Test Group: Content-Type Header ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\");",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// --- Test Group: Body is not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "",
+                  "// --- Test Group: JSON Schema Validation ---",
+                  "let isJson = false;",
+                  "let jsonData;",
+                  "try {",
+                  "    const contentType = pm.response.headers.get(\"Content-Type\") || \"\";",
+                  "    if (contentType.includes(\"application/json\")) {",
+                  "        jsonData = pm.response.json();",
+                  "        isJson = true;",
+                  "    }",
+                  "} catch (e) {}",
+                  "",
+                  "if (isJson) {",
+                  "    pm.test(\"Product object has required fields and types\", function () {",
+                  "        pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+                  "        pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+                  "        pm.expect(jsonData).to.have.property(\"price\").that.is.a(\"number\");",
+                  "        pm.expect(jsonData).to.have.property(\"stock\").that.is.a(\"number\");",
+                  "        pm.expect(jsonData).to.have.property(\"category\").that.is.a(\"string\");",
+                  "        pm.expect(jsonData).to.have.property(\"created_at\").that.is.a(\"string\");",
+                  "        pm.expect(jsonData).to.have.property(\"description\").that.is.a(\"string\");",
+                  "    });",
+                  "    pm.test(\"created_at is ISO 8601 string\", function () {",
+                  "        pm.expect(jsonData.created_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+$/);",
+                  "    });",
+                  "    // Save product id for downstream use",
+                  "    if (jsonData.id) {",
+                  "        pm.environment.set(\"product_id\", jsonData.id);",
+                  "    }",
+                  "    // --- AJV Schema Validation ---",
+                  "    pm.test(\"Response matches product schema (AJV)\", function () {",
+                  "        const Ajv = require('ajv'), ajv = new Ajv({allErrors: true, strict: false});",
+                  "        const schema = {",
+                  "            type: \"object\",",
+                  "            required: [\"id\", \"name\", \"price\", \"stock\", \"category\", \"created_at\", \"description\"],",
+                  "            properties: {",
+                  "                id: { type: \"number\" },",
+                  "                name: { type: \"string\" },",
+                  "                price: { type: \"number\" },",
+                  "                stock: { type: \"number\" },",
+                  "                category: { type: \"string\" },",
+                  "                created_at: { type: \"string\" },",
+                  "                description: { type: \"string\" }",
+                  "            }",
+                  "        };",
+                  "        const valid = ajv.validate(schema, jsonData);",
+                  "        pm.expect(valid, JSON.stringify(ajv.errors)).to.be.true;",
+                  "    });",
+                  "} else {",
+                  "    pm.test(\"Response is not JSON, skipping schema validation\", function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{product_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "    pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time is less than 1200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "",
+                  "// --- Content-Type Header ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\");",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// --- Body is not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "",
+                  "// --- JSON Validation & Save product_id to environment ---",
+                  "let jsonData;",
+                  "try {",
+                  "    const contentType = pm.response.headers.get(\"Content-Type\") || \"\";",
+                  "    if (contentType.includes(\"application/json\")) {",
+                  "        jsonData = pm.response.json();",
+                  "        pm.test(\"Product object has required fields and types\", function () {",
+                  "            pm.expect(jsonData).to.have.property(\"id\").that.is.a(\"number\");",
+                  "            pm.expect(jsonData).to.have.property(\"name\").that.is.a(\"string\");",
+                  "            pm.expect(jsonData).to.have.property(\"price\").that.is.a(\"number\");",
+                  "            pm.expect(jsonData).to.have.property(\"stock\").that.is.a(\"number\");",
+                  "            pm.expect(jsonData).to.have.property(\"category\").that.is.a(\"string\");",
+                  "            pm.expect(jsonData).to.have.property(\"created_at\").that.is.a(\"string\");",
+                  "            pm.expect(jsonData).to.have.property(\"description\").that.is.a(\"string\");",
+                  "        });",
+                  "",
+                  "        // Save product_id for downstream requests in active environment",
+                  "        if (jsonData && jsonData.id !== undefined && jsonData.id !== null) {",
+                  "            pm.environment.set(\"product_id\", String(jsonData.id));",
+                  "        }",
+                  "",
+                  "        pm.test(\"created_at is ISO 8601 string\", function () {",
+                  "            pm.expect(jsonData.created_at).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+/);",
+                  "        });",
+                  "    }",
+                  "} catch (e) {",
+                  "    // no-op",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Product\",\n  \"description\": \"A product description\",\n  \"price\": 9.99,\n  \"stock\": 100,\n  \"category\": \"electronics\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// --- Test Group: Status Code ---",
+                  "pm.test(\"Status code is 2xx or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202, 204]);",
+                  "});",
+                  "",
+                  "// --- Test Group: Response Time ---",
+                  "pm.test(\"Response time is less than 1200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "",
+                  "// --- Test Group: Content-Type Header (if present) ---",
+                  "pm.test(\"Content-Type header validity\", function () {",
+                  "    const ct = pm.response.headers.get(\"Content-Type\");",
+                  "    if (pm.response.code !== 204) {",
+                  "        pm.expect(ct).to.include(\"application/json\");",
+                  "    } else {",
+                  "        pm.expect(ct || '').to.not.include('application/json');",
+                  "    }",
+                  "});",
+                  "",
+                  "// --- Test Group: Body presence ---",
+                  "pm.test(\"Body presence matches status code\", function () {",
+                  "    if (pm.response.code === 204) {",
+                  "        pm.expect(pm.response.text()).to.eql('');",
+                  "    } else {",
+                  "        pm.expect(pm.response.text()).to.not.be.empty;",
+                  "    }",
+                  "});",
+                  "",
+                  "// --- Test Group: JSON Schema Validation (guarded) ---",
+                  "(function(){",
+                  "  let jsonData; let isJson=false;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { jsonData = pm.response.json(); isJson=true; } } catch(e) {}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  // For update product, expect product resource back",
+                  "  pm.test('Updated product has required fields', function(){",
+                  "    pm.expect(jsonData).to.have.property('id').that.is.a('number');",
+                  "    pm.expect(jsonData).to.have.property('name').that.is.a('string');",
+                  "    pm.expect(jsonData).to.have.property('price').that.is.a('number');",
+                  "    pm.expect(jsonData).to.have.property('stock').that.is.a('number');",
+                  "    pm.expect(jsonData).to.have.property('category').that.is.a('string');",
+                  "    pm.expect(jsonData).to.have.property('created_at').that.is.a('string');",
+                  "    pm.expect(jsonData).to.have.property('description').that.is.a('string');",
+                  "  });",
+                  "  pm.test('AJV schema validation', function(){",
+                  "    const Ajv = require('ajv'), ajv = new Ajv({allErrors:true, strict:false});",
+                  "    const schema = { type:'object', required:['id','name','price','stock','category','created_at','description'], properties:{ id:{type:'number'}, name:{type:'string'}, price:{type:'number'}, stock:{type:'number'}, category:{type:'string'}, created_at:{type:'string'}, description:{type:'string'} } };",
+                  "    const valid = ajv.validate(schema, jsonData);",
+                  "    pm.expect(valid, JSON.stringify(ajv.errors)).to.be.true;",
+                  "  });",
+                  "  if (jsonData && jsonData.id) { pm.environment.set('product_id', jsonData.id); }",
+                  "})();"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Product\",\n  \"description\": \"Updated description\",\n  \"price\": 19.99,\n  \"stock\": 50,\n  \"category\": \"books\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/{{product_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx or 204\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+                  "});",
+                  "",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type for delete\", function () {",
+                  "  const ct = pm.response.headers.get('Content-Type') || '';",
+                  "  if (pm.response.code === 204) {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "  } else if (ct) {",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "  }",
+                  "});",
+                  "",
+                  "// --- JSON guard and body checks ---",
+                  "(function(){",
+                  "  const body = pm.response.text();",
+                  "  if (pm.response.code !== 204) {",
+                  "    pm.test('Body not empty for non-204', function(){ pm.expect(body).to.not.be.empty; });",
+                  "  }",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson = true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('Deletion response shape (optional)', function(){",
+                  "    // common patterns: { success: true } or deleted resource",
+                  "    if (data && typeof data === 'object' && 'success' in data) {",
+                  "      pm.expect(data.success).to.be.oneOf([true, false]);",
+                  "    }",
+                  "  });",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{product_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Product CRUD endpoints"
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get All Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "  pm.response.to.have.header(\"Content-Type\");",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "// --- Body not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "// --- JSON Schema Validation (guarded) ---",
+                  "(function(){",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson=true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('Orders array shape', function(){",
+                  "    pm.expect(Array.isArray(data)).to.be.true;",
+                  "    // Add more checks if you know the shape",
+                  "  });",
+                  "})();"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Fix: this request is meant to GET an order by ID. Ensure method is GET and allow 2xx or 404. Also guard against 415 from incorrect method/content-type.",
+                  "pm.test(\"Status code is 2xx or 404\", function () {",
+                  "    const code = pm.response.code;",
+                  "    if (code >= 200 && code < 300) {",
+                  "        pm.expect(code).to.be.within(200, 299);",
+                  "    } else if (code === 404) {",
+                  "        pm.expect(code).to.eql(404);",
+                  "        console.warn(\"Order not found: received 404. This may be expected if the order does not exist.\");",
+                  "    } else {",
+                  "        // Provide more context when failing",
+                  "        const ct = pm.response.headers.get('Content-Type');",
+                  "        pm.expect.fail(`Unexpected status code: ${code}. Content-Type: ${ct}`);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure this request is a GET and uses baseUrl and order_id variables correctly",
+                  "pm.request.method = 'GET';",
+                  "const baseUrl = pm.environment.get('baseUrl') || pm.collectionVariables.get('baseUrl');",
+                  "const orderId = pm.environment.get('order_id') || pm.collectionVariables.get('order_id');",
+                  "if (baseUrl && orderId) {",
+                  "  pm.request.url = `${baseUrl.replace(/\\/$/, '')}/orders/${orderId}`;",
+                  "}",
+                  "// No body for GET",
+                  "pm.request.body && pm.request.body.clear();",
+                  "pm.request.headers.remove('Content-Type');",
+                  "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Validate Create Order response schema and keys",
+                  "pm.test(\"status code is 201 (Created)\", function () {",
+                  "    pm.expect(pm.response.code).to.eql(201);",
+                  "});",
+                  "",
+                  "var jsonData;",
+                  "pm.test(\"response is valid JSON\", function () {",
+                  "    jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "// Expected keys and their type validators",
+                  "const expected = {",
+                  "    id: function (v) {",
+                  "        const isNumber = typeof v === \"number\" && !Number.isNaN(v);",
+                  "        const isNumericString = typeof v === \"string\" && /^\\d+$/.test(v);",
+                  "        pm.expect(isNumber || isNumericString, \"Key 'id' must be a number or numeric string\").to.be.true;",
+                  "    },",
+                  "    customer_name: function (v) {",
+                  "        pm.expect(v, \"Key 'customer_name' must be a string\").to.be.a(\"string\");",
+                  "    },",
+                  "    customer_email: function (v) {",
+                  "        pm.expect(v, \"Key 'customer_email' must be a string\").to.be.a(\"string\");",
+                  "        // basic format check",
+                  "        pm.expect(/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(v), \"Key 'customer_email' must look like an email\").to.be.true;",
+                  "    },",
+                  "    product_id: function (v) {",
+                  "        pm.expect(v, \"Key 'product_id' must be a number\").to.be.a(\"number\");",
+                  "    },",
+                  "    product_name: function (v) {",
+                  "        pm.expect(v, \"Key 'product_name' must be a string\").to.be.a(\"string\");",
+                  "    },",
+                  "    quantity: function (v) {",
+                  "        pm.expect(v, \"Key 'quantity' must be a number\").to.be.a(\"number\");",
+                  "    },",
+                  "    status: function (v) {",
+                  "        pm.expect(v, \"Key 'status' must be a string\").to.be.a(\"string\");",
+                  "    },",
+                  "    total_price: function (v) {",
+                  "        pm.expect(typeof v === \"number\" && !Number.isNaN(v), \"Key 'total_price' must be a number\").to.be.true;",
+                  "    },",
+                  "    created_at: function (v) {",
+                  "        pm.expect(v, \"Key 'created_at' must be a string\").to.be.a(\"string\");",
+                  "        // ISO-like timestamp check (lenient)",
+                  "        pm.expect(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:?\\d{2})?$/.test(v), \"Key 'created_at' must be an ISO-like timestamp string\").to.be.true;",
+                  "    }",
+                  "};",
+                  "",
+                  "// Assert required keys exist",
+                  "pm.test(\"response contains all expected top-level keys\", function () {",
+                  "    const missing = Object.keys(expected).filter(k => !(k in jsonData));",
+                  "    pm.expect(missing, \"Missing keys: \" + missing.join(\", \")).to.have.lengthOf(0);",
+                  "});",
+                  "",
+                  "// Validate types for each expected key",
+                  "Object.keys(expected).forEach(function (key) {",
+                  "    pm.test(\"type check for key '\" + key + \"'\", function () {",
+                  "        expected[key](jsonData[key]);",
+                  "    });",
+                  "});",
+                  "",
+                  "// Negative assertion: ensure unexpected key 'order_id' is NOT present",
+                  "pm.test(\"no unexpected top-level key 'order_id'\", function () {",
+                  "    pm.expect(Object.prototype.hasOwnProperty.call(jsonData, \"order_id\"), \"Unexpected key 'order_id' found at top level\").to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Jane Doe\",\n  \"customer_email\": \"jane@example.com\",\n  \"product_id\": 1,\n  \"quantity\": 2,\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "  pm.response.to.have.header(\"Content-Type\");",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "// --- Body not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "// --- JSON Schema Validation (guarded) ---",
+                  "(function(){",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson=true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('Order object shape', function(){",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    // Add more checks if you know the shape",
+                  "  });",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Jane Doe\",\n  \"customer_email\": \"jane@example.com\",\n  \"quantity\": 3,\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx or 204\", function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+                  "});",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type for delete\", function () {",
+                  "  const ct = pm.response.headers.get('Content-Type') || '';",
+                  "  if (pm.response.code === 204) {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "  } else if (ct) {",
+                  "    pm.expect(ct).to.include('application/json');",
+                  "  }",
+                  "});",
+                  "// --- JSON guard and body checks ---",
+                  "(function(){",
+                  "  const body = pm.response.text();",
+                  "  if (pm.response.code !== 204) {",
+                  "    pm.test('Body not empty for non-204', function(){ pm.expect(body).to.not.be.empty; });",
+                  "  }",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson = true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('Deletion response shape (optional)', function(){",
+                  "    if (data && typeof data === 'object' && 'success' in data) {",
+                  "      pm.expect(data.success).to.be.oneOf([true, false]);",
+                  "    }",
+                  "  });",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{order_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Order CRUD endpoints"
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "  pm.response.to.have.header(\"Content-Type\");",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "// --- Body not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "// --- JSON Schema Validation (guarded) ---",
+                  "(function(){",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson=true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('Health check shape', function(){",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    // Add more checks if you know the shape",
+                  "  });",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Health and root endpoints"
+    },
+    {
+      "name": "Root",
+      "item": [
+        {
+          "name": "API Root",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// --- Status Code ---",
+                  "pm.test(\"Status code is 2xx\", function () {",
+                  "  pm.expect(pm.response.code).to.be.within(200, 299);",
+                  "});",
+                  "// --- Response Time ---",
+                  "pm.test(\"Response time < 1200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(1200);",
+                  "});",
+                  "// --- Content-Type ---",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "  pm.response.to.have.header(\"Content-Type\");",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "// --- Body not empty ---",
+                  "pm.test(\"Response body is not empty\", function () {",
+                  "  pm.expect(pm.response.text()).to.not.be.empty;",
+                  "});",
+                  "// --- JSON Schema Validation (guarded) ---",
+                  "(function(){",
+                  "  let isJson=false, data;",
+                  "  try { const ct = pm.response.headers.get('Content-Type')||''; if (ct.includes('application/json')) { data = pm.response.json(); isJson=true; } } catch(e){}",
+                  "  if (!isJson) {",
+                  "    pm.test('Non-JSON response, skipping schema validation', function(){ pm.expect(true).to.be.true; });",
+                  "    return;",
+                  "  }",
+                  "  pm.test('API root has expected keys', function(){",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    // Add more checks if you know the shape",
+                  "  });",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          }
+        }
+      ],
+      "description": "API root endpoint"
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Get PayPal Payment Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Tests for Get PayPal Payment Details",
+                  "let json;",
+                  "try {",
+                  "  json = pm.response.json();",
+                  "} catch (e) {",
+                  "  pm.test('Response is valid JSON', function () {",
+                  "    pm.expect.fail('Response body is not valid JSON');",
+                  "  });",
+                  "}",
+                  "",
+                  "if (json) {",
+                  "  pm.test('Log payment status/state', function () {",
+                  "    let state = json.state || (json.payments && json.payments[0] && json.payments[0].state);",
+                  "    pm.expect(state, 'payment state exists').to.be.a('string').that.is.not.empty;",
+                  "    console.log('PayPal Payment State:', state);",
+                  "  });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paypal_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{paypal_base_url}}/v1/payments/payment/{{paypal_payment_id}}",
+              "host": [
+                "{{paypal_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "payments",
+                "payment",
+                "{{paypal_payment_id}}"
+              ]
+            },
+            "description": "Generated from cURL: curl -X GET \"{{paypal_base_url}}/v1/payments/payment/{{paypal_payment_id}}\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer {{paypal_access_token}}\""
+          }
+        },
+        {
+          "name": "Execute PayPal Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Tests for Execute PayPal Payment",
+                  "let json;",
+                  "try {",
+                  "  json = pm.response.json();",
+                  "} catch (e) {",
+                  "  pm.test('Response is valid JSON', function () {",
+                  "    pm.expect.fail('Response body is not valid JSON');",
+                  "  });",
+                  "}",
+                  "",
+                  "if (json) {",
+                  "  pm.test('Extract payer_id and store as environment variable if present', function () {",
+                  "    let payerId = json.payer_id || (json.payer && json.payer.payer_info && json.payer.payer_info.payer_id);",
+                  "    if (!payerId && json.id && json.state && json.transactions && Array.isArray(json.transactions)) {",
+                  "      // Try to find payer_id in nested structure",
+                  "      payerId = json.transactions[0]?.related_resources?.[0]?.sale?.payer?.payer_info?.payer_id;",
+                  "    }",
+                  "    if (payerId) {",
+                  "      pm.environment.set('paypal_payer_id', payerId);",
+                  "    }",
+                  "    pm.expect(payerId, 'payer_id exists').to.be.a('string').that.is.not.empty;",
+                  "  });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paypal_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_id\": \"{{paypal_payer_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v1/payments/payment/{{paypal_payment_id}}/execute",
+              "host": [
+                "{{paypal_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "payments",
+                "payment",
+                "{{paypal_payment_id}}",
+                "execute"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"{{paypal_base_url}}/v1/payments/payment/{{paypal_payment_id}}/execute\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer {{paypal_access_token}}\" -d '{\n  \"payer_id\": \"{{paypal_payer_id}}\"\n}'"
+          }
+        },
+        {
+          "name": "Create PayPal Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Tests for Create PayPal Payment",
+                  "let json;",
+                  "try {",
+                  "  json = pm.response.json();",
+                  "} catch (e) {",
+                  "  pm.test('Response is valid JSON', function () {",
+                  "    pm.expect.fail('Response body is not valid JSON');",
+                  "  });",
+                  "}",
+                  "",
+                  "if (json) {",
+                  "  pm.test('Extract payment id and store as environment variable', function () {",
+                  "    const id = json.id || (json.payment && json.payment.id);",
+                  "    pm.expect(id, 'payment id exists').to.be.a('string').that.is.not.empty;",
+                  "    pm.environment.set('paypal_payment_id', id);",
+                  "  });",
+                  "",
+                  "  pm.test('Extract approval_url from links and store as environment variable', function () {",
+                  "    const links = json.links || [];",
+                  "    const approval = Array.isArray(links) ? links.find(l => (l.rel || '').toLowerCase() === 'approval_url') : null;",
+                  "    pm.expect(approval && approval.href, 'approval_url exists').to.be.a('string').that.is.not.empty;",
+                  "    pm.environment.set('paypal_approval_url', approval.href);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paypal_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"sale\",\n  \"payer\": { \"payment_method\": \"paypal\" },\n  \"transactions\": [\n    {\n      \"amount\": { \"total\": \"10.00\", \"currency\": \"USD\" },\n      \"description\": \"Order payment\"\n    }\n  ],\n  \"redirect_urls\": {\n    \"return_url\": \"{{app_base_url}}/paypal/return\",\n    \"cancel_url\": \"{{app_base_url}}/paypal/cancel\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v1/payments/payment",
+              "host": [
+                "{{paypal_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "payments",
+                "payment"
+              ]
+            },
+            "description": "Generated from cURL: curl -X POST \"{{paypal_base_url}}/v1/payments/payment\" -H \"Content-Type: application/json\" -H \"Authorization: Bearer {{paypal_access_token}}\" -d '{\n  \"intent\": \"sale\",\n  \"payer\": { \"payment_method\": \"paypal\" },\n  \"transactions\": [\n    {\n      \"amount\": { \"total\": \"10.00\", \"currency\": \"USD\" },\n      \"description\": \"Order payment\"\n    }\n  ],\n  \"redirect_urls\": {\n    \"return_url\": \"{{app_base_url}}/paypal/return\",\n    \"cancel_url\": \"{{app_base_url}}/paypal/cancel\"\n  }\n}'"
+          }
+        },
+        {
+          "name": "Get PayPal OAuth Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "",
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.access_token) {",
+                  "    pm.environment.set('paypal_access_token', json.access_token);",
+                  "  }",
+                  "  if (json && json.expires_in) {",
+                  "    console.log('PayPal access token expires_in (seconds):', json.expires_in);",
+                  "  }",
+                  "} catch (e) {",
+                  "  console.warn('Response was not JSON or missing fields:', e);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{paypal_client_id}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{paypal_client_secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v1/oauth2/token",
+              "host": [
+                "{{paypal_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "oauth2",
+                "token"
+              ]
+            },
+            "description": "Retrieves a PayPal OAuth access token using Basic Auth (client_id:client_secret) to authenticate subsequent API calls. Body: grant_type=client_credentials. Saves token to environment as `paypal_access_token` and logs `expires_in`."
+          }
+        }
+      ],
+      "description": "**Payments Workflow:**\n\n1. **Get PayPal OAuth Token** – Obtain an access token for authenticating subsequent PayPal API requests.\n2. **Create PayPal Payment** – Initiate a payment with PayPal using the access token.\n3. **Approve Payment** – Manually approve the payment via the approval URL (`{{paypal_approval_url}}`).\n4. **Execute PayPal Payment** – Complete the payment after approval.\n5. **Get PayPal Payment Details** – Retrieve details of the processed payment."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level pre-request script",
+          "// Sets request start timestamp and ensures a correlation-id header exists. Also exposes it as a variable.",
+          "(function () {",
+          "  try {",
+          "    // Record start time for client-side duration calculation",
+          "    const now = Date.now();",
+          "    pm.variables.set('requestStart', String(now));",
+          "",
+          "    // Try to reuse any existing correlation id from environment/variables",
+          "    let cid = pm.variables.get('correlationId');",
+          "",
+          "    // Check existing request header first",
+          "    const existingHeader = pm.request.headers.get('correlation-id');",
+          "    if (existingHeader) {",
+          "      cid = existingHeader;",
+          "    }",
+          "",
+          "    // Generate UUID v4 if missing",
+          "    function uuidv4() {",
+          "      // RFC4122 version 4 compliant UUID",
+          "      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {",
+          "        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);",
+          "        return v.toString(16);",
+          "      });",
+          "    }",
+          "",
+          "    if (!cid) {",
+          "      cid = uuidv4();",
+          "    }",
+          "",
+          "    // Set/update header on the outgoing request",
+          "    pm.request.headers.upsert({ key: 'correlation-id', value: cid });",
+          "",
+          "    // Expose for downstream use in scripts",
+          "    pm.variables.set('correlationId', cid);",
+          "  } catch (e) {",
+          "    // Do not block the request",
+          "  }",
+          "})();"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "localhost:5001"
+    }
+  ]
+}
