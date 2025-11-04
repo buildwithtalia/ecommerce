@@ -525,6 +525,50 @@
           }
         },
         {
+          "name": "Get Recent Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('body is array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('items have required fields', function () { const arr = pm.response.json(); if (!Array.isArray(arr)) return; arr.forEach(o => { pm.expect(o).to.have.property('id'); pm.expect(o).to.have.property('customer_name'); pm.expect(o).to.have.property('created_at'); pm.expect(o).to.have.property('total_price'); pm.expect(o).to.have.property('status'); }); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Returns orders from the last 7 days.",
+            "url": {
+              "raw": "{{baseUrl}}/orders/recent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "recent"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{baseUrl}}/orders/recent"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "cookie": [],
+              "body": "[]"
+            }
+          ]
+        },
+        {
           "name": "Get Order by ID",
           "event": [
             {
