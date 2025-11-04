@@ -1,0 +1,11 @@
+{
+  "collectionRunId": "44848164-9888b59a-fb07-41ed-ba5f-511565d6e121",
+  "collectionName": "ecommerce FS APIs",
+  "environment": "dev",
+  "totalTestCount": 38,
+  "passedTestCount": 38,
+  "failedTestCount": 0,
+  "skippedTestCount": 0,
+  "totalRequests": 6,
+  "runStatus": "success"
+}
