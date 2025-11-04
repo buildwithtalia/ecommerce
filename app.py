@@ -205,6 +205,14 @@ def get_orders():
     orders = query.order_by(Order.created_at.desc()).all()
     return jsonify([order.to_dict() for order in orders]), 200
 
+@app.route('/orders/recent', methods=['GET'])
+def recent_orders():
+    """Get orders from the last 7 days"""
+    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    recent = Order.query.filter(Order.created_at >= one_week_ago).all()
+    return jsonify([o.to_dict() for o in recent]), 200
+
+
 
 @app.route('/orders/<int:order_id>', methods=['GET'])
 def get_order(order_id):
