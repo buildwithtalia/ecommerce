@@ -1,0 +1,20 @@
+{
+  "workspace": {
+    "id": "affa3006-6b3c-42f7-8329-c22236edd673"
+  },
+  "entities": {
+    "collections": [
+      "../postman/collections/ecommerce FS APIs.postman_collection.json"
+    ],
+    "environments": [
+      "../postman/environments/dev.postman_environment.json",
+      "../postman/environments/prod.postman_environment.json",
+      "../postman/environments/staging.postman_environment.json"
+    ],
+    "specs": [],
+    "flows": [],
+    "globals": [
+      "../postman/globals/workspace.postman_globals.json"
+    ]
+  }
+}
